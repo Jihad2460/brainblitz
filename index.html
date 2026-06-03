@@ -38,7 +38,7 @@
             min-height: 100%;
             width: 100%;
             margin: 0;
-            padding: 0;
+            padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -81,7 +81,7 @@
         }
 
         .w-full { width: 100%; }
-        .max-w-md { max-width: 28rem; margin-left: auto; margin-right: auto; }
+        .max-w-md { max-width: 28rem; width: 100%; margin-left: auto; margin-right: auto; padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); box-sizing: border-box; }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .items-center { align-items: center; }
@@ -218,7 +218,7 @@
             font-weight: 900;
             letter-spacing: 0.1em;
             color: #fff;
-            opacity: 0.03;
+            opacity: 0.07;
             display: flex;
             align-items: center;
             gap: 0.25rem;
@@ -239,12 +239,12 @@
 <body>
 
     <div class="watermark-container">
-        <div class="watermark" style="left: 5%; top: 12%; transform: rotate(-12deg); font-size: 1.5rem;">JIHAD 👑</div>
-        <div class="watermark" style="right: 5%; top: 18%; transform: rotate(12deg); font-size: 1.5rem;">JIHAD 👑</div>
-        <div class="watermark" style="left: 8%; top: 45%; transform: rotate(6deg); font-size: 1.25rem;">JIHAD 👑</div>
-        <div class="watermark" style="right: 8%; top: 55%; transform: rotate(-6deg); font-size: 1.25rem;">JIHAD 👑</div>
-        <div class="watermark" style="left: 5%; top: 78%; transform: rotate(-15deg); font-size: 1.5rem;">JIHAD 👑</div>
-        <div class="watermark" style="right: 5%; top: 82%; transform: rotate(15deg); font-size: 1.5rem;">JIHAD 👑</div>
+        <div class="watermark" style="left: 5%; top: 12%; transform: rotate(-12deg); font-size: 2rem;">JIHAD 👑</div>
+        <div class="watermark" style="right: 5%; top: 18%; transform: rotate(12deg); font-size: 2rem;">JIHAD 👑</div>
+        <div class="watermark" style="left: 8%; top: 45%; transform: rotate(6deg); font-size: 1.75rem;">JIHAD 👑</div>
+        <div class="watermark" style="right: 8%; top: 55%; transform: rotate(-6deg); font-size: 1.75rem;">JIHAD 👑</div>
+        <div class="watermark" style="left: 5%; top: 78%; transform: rotate(-15deg); font-size: 2rem;">JIHAD 👑</div>
+        <div class="watermark" style="right: 5%; top: 82%; transform: rotate(15deg); font-size: 2rem;">JIHAD 👑</div>
     </div>
 
     <!-- KONFETTI CONTAINER -->
@@ -263,7 +263,7 @@
     </div>
 
     <!-- HEADER STATUS LEISTE -->
-    <header class="w-full max-w-md" style="padding: 1.5rem 1.25rem 0.5rem 1.25rem; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+    <header class="w-full max-w-md" style="padding: 1.5rem 0 0.5rem 0; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
         <div class="flex" style="gap: 1rem;">
             <div class="flex flex-col">
                 <span style="font-size: 0.6rem; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Punkte (Gesamt)</span>
@@ -285,7 +285,7 @@
     </header>
 
     <!-- HAUPTBEREICH (SPIELFLÄCHE) -->
-    <main class="flex-1 flex flex-col justify-center items-center w-full max-w-md relative" style="padding: 1rem; z-index: 10;">
+    <main class="flex-1 flex flex-col justify-center items-center w-full max-w-md relative" style="padding: 1rem 0; z-index: 10;">
         
         <!-- KATEGORIE-AUSWAHL-BILDSCHIRM -->
         <div id="category-screen" class="card w-full">
