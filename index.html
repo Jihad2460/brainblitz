@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BrainBlitz - Das ultimative Intelligenz-Quiz</title>
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-indigo: #1e1b4b;
+            --card-bg: #111c30;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --indigo-accent: #6366f1;
+            --indigo-hover: #4f46e5;
+            --amber-accent: #fbbf24;
+            --rose-accent: #ef4444;
+            --emerald-accent: #10b981;
+        }
+
+        /* Applying the deep gradient to html AND body to eradicate white spaces permanently */
+        html {
+            background-color: var(--bg-dark) !important;
+            background: radial-gradient(circle at center, var(--bg-indigo) 0%, var(--bg-dark) 100%) !important;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            background: transparent !important;
+            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Using safe, solid background colors for maximum iOS compatibility */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Touch interaction optimizations for iOS Safari Sandboxes */
+        button {
+            touch-action: manipulation;
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .btn-active:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+
+        /* Helper Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .w-full { width: 100%; }
+        .max-w-md { max-width: 28rem; margin-left: auto; margin-right: auto; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+        .theme-btn {
+            width: 100%;
+            border-radius: 1rem;
+            padding: 0.875rem 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 0.625rem;
+        }
+
+        .btn-mathe { background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(79, 70, 229, 0.3)); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; }
+        .btn-bio { background: linear-gradient(135deg, rgba(5, 150, 105, 0.3), rgba(13, 148, 136, 0.3)); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0; }
+        .btn-geschichte { background: linear-gradient(135deg, #78350f, #451a03); border: 1px solid #d97706; color: #ffedd5; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+        .btn-raetsel { background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(192, 38, 211, 0.3)); border: 1px solid rgba(139, 92, 246, 0.4); color: #ddd6fe; }
+        .btn-allgemein { background: linear-gradient(135deg, rgba(219, 39, 119, 0.3), rgba(225, 29, 72, 0.3)); border: 1px solid rgba(244, 63, 94, 0.4); color: #fecdd3; }
+
+        .timer-container {
+            background: #1e293b;
+            height: 0.5rem;
+            border-radius: 9999px;
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--emerald-accent), var(--indigo-accent));
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+
+        .timer-digits {
+            font-family: monospace;
+            font-weight: 700;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #818cf8;
+            min-width: 3.5rem;
+            text-align: center;
+        }
+
+        .answer-btn {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.4);
+            border: 2px solid rgba(71, 85, 105, 0.4);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            transition: all 0.15s;
+        }
+
+        .answer-btn-indicator {
+            width: 1.375rem;
+            height: 1.375rem;
+            border-radius: 9999px;
+            background: rgba(71, 85, 105, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.97);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 100; /* Ensure it is on top of everything */
+        }
+
+        .badge {
+            background: rgba(30, 27, 75, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .gold-shine {
+            animation: gold-glow 2s infinite;
+        }
+
+        @keyframes gold-glow {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.5)); }
+            50% { filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8)); }
+        }
+
+        /* WATERMARK BACKGROUND */
+        .watermark-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .watermark {
+            position: absolute;
+            font-family: serif;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: #fff;
+            opacity: 0.03;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .svg-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            vertical-align: middle;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="watermark-container">
+        <div class="watermark" style="left: 5%; top: 12%; transform: rotate(-12deg); font-size: 1.5rem;">JIHAD 👑</div>
+        <div class="watermark" style="right: 5%; top: 18%; transform: rotate(12deg); font-size: 1.5rem;">JIHAD 👑</div>
+        <div class="watermark" style="left: 8%; top: 45%; transform: rotate(6deg); font-size: 1.25rem;">JIHAD 👑</div>
+        <div class="watermark" style="right: 8%; top: 55%; transform: rotate(-6deg); font-size: 1.25rem;">JIHAD 👑</div>
+        <div class="watermark" style="left: 5%; top: 78%; transform: rotate(-15deg); font-size: 1.5rem;">JIHAD 👑</div>
+        <div class="watermark" style="right: 5%; top: 82%; transform: rotate(15deg); font-size: 1.5rem;">JIHAD 👑</div>
+    </div>
+
+    <!-- KONFETTI CONTAINER -->
+    <div id="confetti-container" style="position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden;" class="hidden"></div>
+
+    <!-- PAUSE-MODAL -->
+    <div id="pause-modal" class="modal hidden">
+        <div style="width: 4rem; height: 4rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+            <svg class="svg-icon" style="width: 2rem; height: 2rem; stroke: #818cf8;" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        </div>
+        <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff;">Spiel pausiert</h3>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem; max-w: 15rem;">Nimm dir eine kurze Pause! Jihads Spiel wartet geduldig auf dich.</p>
+        <button onclick="togglePause()" class="btn-active" style="background: linear-gradient(to right, #6366f1, #4f46e5); color: #fff; font-weight: 700; padding: 0.875rem 1.5rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
+            Weiter spielen <svg class="svg-icon" viewBox="0 0 24 24" style="fill: currentColor; width: 1rem; height: 1rem;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+    </div>
+
+    <!-- HEADER STATUS LEISTE -->
+    <header class="w-full max-w-md" style="padding: 1.5rem 1.25rem 0.5rem 1.25rem; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+        <div class="flex" style="gap: 1rem;">
+            <div class="flex flex-col">
+                <span style="font-size: 0.6rem; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Punkte (Gesamt)</span>
+                <span id="score-display" style="font-size: 1.125rem; font-weight: 900; line-height: 1.2; color: #fff;">0</span>
+            </div>
+            <div class="flex flex-col">
+                <span style="font-size: 0.6rem; color: var(--amber-accent); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Münzen</span>
+                <div class="flex" style="align-items: center; gap: 0.25rem;">
+                    <svg class="svg-icon gold-shine" style="width: 0.875rem; height: 0.875rem; color: var(--amber-accent); stroke-width: 2.5;" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                    <span id="coins-display" style="font-size: 1.125rem; font-weight: 900; line-height: 1.2; color: var(--amber-accent);">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge">
+            <svg class="svg-icon" style="width: 0.875rem; height: 0.875rem; color: #818cf8;" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span style="font-size: 0.7rem; font-weight: 700; color: #fff;">Level <span id="level-indicator">1</span></span>
+        </div>
+    </header>
+
+    <!-- HAUPTBEREICH (SPIELFLÄCHE) -->
+    <main class="flex-1 flex flex-col justify-center items-center w-full max-w-md relative" style="padding: 1rem; z-index: 10;">
+        
+        <!-- KATEGORIE-AUSWAHL-BILDSCHIRM -->
+        <div id="category-screen" class="card w-full">
+            <div style="width: 4rem; height: 4rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+                <svg class="svg-icon" style="width: 2.25rem; height: 2.25rem; color: #818cf8;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            </div>
+            <h1 style="font-size: 1.75rem; font-weight: 900; margin-bottom: 0.25rem; color: #fff;">Themenauswahl</h1>
+            <p style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 1.25rem;">Wähle eine Kategorie, um Jihads Challenge zu starten!</p>
+
+            <div class="flex flex-col w-full" style="gap: 0.25rem;">
+                <button onclick="selectCategory('Mathe')" class="theme-btn btn-mathe btn-active">
+                    <span class="flex" style="align-items: center; gap: 0.5rem;"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="14" y="14" width="6" height="6" rx="1"/><rect x="4" y="4" width="6" height="6" rx="1"/><path d="M4 14h6M14 4h6M14 7h6M4 17h6"/></svg> Mathe</span>
+                    <svg class="svg-icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button onclick="selectCategory('Bio')" class="theme-btn btn-bio btn-active">
+                    <span class="flex" style="align-items: center; gap: 0.5rem;"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v8M9 11h6"/></svg> Biologie</span>
+                    <svg class="svg-icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button onclick="selectCategory('Geschichte')" class="theme-btn btn-geschichte btn-active">
+                    <span class="flex" style="align-items: center; gap: 0.5rem;"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Geschichte</span>
+                    <svg class="svg-icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button onclick="selectCategory('Rätsel')" class="theme-btn btn-raetsel btn-active">
+                    <span class="flex" style="align-items: center; gap: 0.5rem;"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg> Rätsel / Logik</span>
+                    <svg class="svg-icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button onclick="selectCategory('Allgemeinwissen')" class="theme-btn btn-allgemein btn-active">
+                    <span class="flex" style="align-items: center; gap: 0.5rem;"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> Allgemeinwissen</span>
+                    <svg class="svg-icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+            
+            <div style="margin-top: 1.25rem; font-weight: 600; color: rgba(129, 140, 248, 0.6); font-size: 0.65rem;">Entwickelt von Jihad • Offizielles Spiel</div>
+        </div>
+
+        <!-- START-BILDSCHIRM (Mit ausgewählter Kategorie) -->
+        <div id="start-screen" class="card w-full hidden">
+            <div style="width: 4rem; height: 4rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+                <svg class="svg-icon" style="width: 2.25rem; height: 2.25rem; color: #818cf8;" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 900; margin-bottom: 0.35rem; letter-spacing: -0.02em; color: #fff;">BrainBlitz</h1>
+            
+            <div style="margin-bottom: 1rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); padding: 0.25rem 0.75rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.375rem;">
+                <svg class="svg-icon" style="width: 0.875rem; height: 0.875rem; color: #818cf8;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style="font-size: 0.65rem; font-weight: 700; color: #a5b4fc;">Thema: <span id="selected-category-tag" style="color: var(--amber-accent);">Unbekannt</span></span>
+            </div>
+
+            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.25rem; text-align: left; font-size: 0.75rem;">
+                <p style="color: #fca5a5; font-weight: 700; display: flex; align-items: center; gap: 0.375rem; margin-bottom: 0.35rem;">
+                    ⚠️ Sudden Death Regeln:
+                </p>
+                <ul style="list-style-type: disc; list-style-position: inside; color: #cbd5e1; line-height: 1.4; display: flex; flex-direction: column; gap: 0.2rem; padding-left: 0.25rem;">
+                    <li>Ein einziger Fehler = <span style="color: #f87171; font-weight: 700;">Sofort Game Over!</span></li>
+                    <li>Genau <span style="color: #a5b4fc; font-weight: 700;">60 Sekunden</span> für das gesamte Level.</li>
+                    <li>Jedes Level besitzt <span style="color: #a5b4fc; font-weight: 700;">20 Fragen</span>.</li>
+                    <li>Schaffe alle 20 Fragen für den <span style="color: var(--amber-accent); font-weight: 700;">+1 Münze-Bonus</span>!</li>
+                </ul>
+            </div>
+            
+            <div class="flex flex-col gap-2 w-full">
+                <button id="start-btn" class="btn-active" style="width: 100%; background: linear-gradient(to right, #6366f1, #4f46e5); color: #fff; font-weight: 800; padding: 0.9rem 1.25rem; border-radius: 1rem; font-size: 1.05rem; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    Challenge starten <svg class="svg-icon" style="width: 1rem; height: 1rem; fill: currentColor; color: var(--amber-accent);" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </button>
+
+                <div class="grid grid-cols-2 gap-2 w-full">
+                    <button id="change-category-btn" onclick="backToCategories()" class="btn-active" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(71, 85, 105, 0.5); color: #a5b4fc; font-weight: 700; padding: 0.75rem 1rem; border-radius: 1rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.375rem;">
+                        <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Thema wechseln
+                    </button>
+                    <button id="shop-open-btn" class="btn-active" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(71, 85, 105, 0.5); color: var(--amber-accent); font-weight: 700; padding: 0.75rem 1rem; border-radius: 1rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.375rem;">
+                        <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Shop
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #1e293b;" class="grid grid-cols-2 gap-4 w-full">
+                <div style="text-align: center;">
+                    <span style="color: var(--text-muted); font-size: 0.65rem; display: block; margin-bottom: 0.15rem;">Beste Punktzahl</span>
+                    <div class="flex justify-center" style="align-items: center; gap: 0.25rem; color: #cbd5e1; font-weight: 700; font-size: 0.875rem;">
+                        <svg class="svg-icon" style="width: 0.875rem; height: 0.875rem; color: var(--amber-accent);" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34M12 2a5 5 0 0 0-5 5v5c0 1.1.9 2 2 2h6a2 2 0 0 0 2-2V7a5 5 0 0 0-5-5z"/></svg>
+                        <span id="highscore-display">0</span>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <span style="color: var(--text-muted); font-size: 0.65rem; display: block; margin-bottom: 0.15rem;">Gesamte Münzen</span>
+                    <div class="flex justify-center" style="align-items: center; gap: 0.25rem; color: var(--amber-accent); font-weight: 700; font-size: 0.875rem;">
+                        <svg class="svg-icon" style="width: 0.875rem; height: 0.875rem;" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        <span id="global-coins-display">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPIEL-BILDSCHIRM (AKTIV) -->
+        <div id="game-screen" class="w-full flex flex-col gap-4 hidden">
+            <!-- Fortschritt & Timer Leiste mit Pause-Taste -->
+            <div class="flex items-center justify-between gap-3 w-full">
+                <button id="pause-btn" onclick="togglePause()" class="btn-active" style="background: #1e293b; color: #a5b4fc; padding: 0.5rem; border-radius: 0.75rem; border: 1px solid rgba(71, 85, 105, 0.4); display: flex; align-items: center; justify-content: center;">
+                    <svg class="svg-icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                </button>
+                <div class="timer-container" style="flex: 1;">
+                    <div id="timer-progress" class="timer-bar"></div>
+                </div>
+                <div id="timer-text" class="timer-digits">60.0s</div>
+            </div>
+
+            <!-- Frage-Box -->
+            <div class="card w-full" style="padding: 1.25rem; position: relative; min-height: 10rem; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.95);">
+                <div style="position: absolute; top: 0.625rem; left: 1rem; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;">
+                    <svg class="svg-icon" style="width: 0.75rem; height: 0.75rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg> Frage <span id="question-number">1</span> von 20
+                </div>
+                <div style="position: absolute; top: 0.625rem; right: 1rem; font-size: 0.65rem; font-weight: 800; color: #6366f1;" id="current-level-tag">
+                    Level 1
+                </div>
+                <p id="question-text" style="font-size: 1.125rem; font-weight: 700; line-height: 1.5; color: #fff; margin-top: 0.5rem;">
+                    Lade Frage...
+                </p>
+            </div>
+
+            <!-- Antwortmöglichkeiten (Immer exakt 3) -->
+            <div class="flex flex-col gap-2 w-full">
+                <button onclick="selectAnswer(0)" class="answer-btn btn-active">
+                    <span id="opt-0" style="padding-right: 0.75rem; text-align: left;">Option A</span>
+                    <span class="answer-btn-indicator">A</span>
+                </button>
+                <button onclick="selectAnswer(1)" class="answer-btn btn-active">
+                    <span id="opt-1" style="padding-right: 0.75rem; text-align: left;">Option B</span>
+                    <span class="answer-btn-indicator">B</span>
+                </button>
+                <button onclick="selectAnswer(2)" class="answer-btn btn-active">
+                    <span id="opt-2" style="padding-right: 0.75rem; text-align: left;">Option C</span>
+                    <span class="answer-btn-indicator">C</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SHOP-BILDSCHIRM -->
+        <div id="shop-screen" class="card w-full hidden" style="padding: 1.25rem;">
+            <!-- Back Button -->
+            <div class="flex justify-between items-center" style="margin-bottom: 1rem; width: 100%;">
+                <h2 style="font-size: 1.25rem; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Shop
+                </h2>
+                <button id="shop-close-btn" class="btn-active" style="background: #1e293b; color: #cbd5e1; padding: 0.5rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Jihad Spendenspruch -->
+            <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 1rem; font-size: 0.7rem; color: #a5b4fc; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; position: relative;">
+                <svg class="svg-icon" style="color: var(--rose-accent); width: 1rem; height: 1rem;" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <p style="font-weight: 700; line-height: 1.4;">
+                    "Dieses geld wird für Jihad sein neues Auto gespendet"
+                </p>
+            </div>
+
+            <!-- Punkt-Tausch-Sektion -->
+            <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(71, 85, 105, 0.4); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 1rem; text-align: left; width: 100%;">
+                <h3 style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <svg class="svg-icon" style="color: #6366f1; width: 0.75rem; height: 0.75rem;" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Punkte eintauschen
+                </h3>
+                <div class="flex justify-between items-center" style="width: 100%;">
+                    <div>
+                        <p style="font-size: 0.75rem; font-weight: 700; color: #fff;">5 Münzen für 10.000 Punkte</p>
+                        <p style="font-size: 0.65rem; color: var(--text-muted);">Deine Punkte: <span id="shop-lifetime-points" style="font-weight: 700; color: #cbd5e1;">0</span></p>
+                    </div>
+                    <button onclick="exchangePointsForCoins()" id="exchange-btn" class="btn-active" style="background: #4f46e5; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.5rem 0.75rem; border-radius: 0.5rem;">
+                        Tauschen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Münzen Kaufen Sektion -->
+            <div class="flex flex-col gap-2 w-full">
+                <h3 style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem; text-align: left;">
+                    <svg class="svg-icon" style="color: var(--amber-accent); width: 0.75rem; height: 0.75rem;" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Münzen kaufen
+                </h3>
+
+                <!-- Pack 1 -->
+                <div style="background: #111c30; border: 1px solid #334155; border-radius: 0.75rem; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="flex" style="align-items: center; gap: 0.5rem;">
+                        <div style="background: rgba(251, 191, 36, 0.1); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid rgba(251, 191, 36, 0.2);">
+                            <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        </div>
+                        <div style="text-align: left;">
+                            <p style="font-weight: 700; font-size: 0.75rem; color: #fff;">1 Münze</p>
+                            <p style="font-size: 0.6rem; color: var(--text-muted);">Booster-Starthilfe</p>
+                        </div>
+                    </div>
+                    <button onclick="buyCoins(1, 0.99)" class="btn-active" style="background: linear-gradient(to right, var(--amber-accent), #d97706); color: #0f172a; font-weight: 900; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem;">
+                        0,99 €
+                    </button>
+                </div>
+
+                <!-- Pack 2 -->
+                <div style="background: #111c30; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 0.75rem; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; width: 100%; position: relative;">
+                    <div style="position: absolute; top: 0; right: 0; background: #4f46e5; color: #fff; font-size: 0.5rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 0 0.75rem 0 0.75rem; text-transform: uppercase;">Beliebt</div>
+                    <div class="flex" style="align-items: center; gap: 0.5rem;">
+                        <div style="background: rgba(99, 102, 241, 0.1); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid rgba(99, 102, 241, 0.2);">
+                            <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        </div>
+                        <div style="text-align: left;">
+                            <p style="font-weight: 700; font-size: 0.75rem; color: #fff;">5 Münzen</p>
+                            <p style="font-size: 0.6rem; color: var(--text-muted);">Super Sparpaket</p>
+                        </div>
+                    </div>
+                    <button onclick="buyCoins(5, 4.50)" class="btn-active" style="background: linear-gradient(to right, #6366f1, #4f46e5); color: #fff; font-weight: 900; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem;">
+                        4,50 €
+                    </button>
+                </div>
+
+                <!-- Pack 3 -->
+                <div style="background: #111c30; border: 1px solid #334155; border-radius: 0.75rem; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="flex" style="align-items: center; gap: 0.5rem;">
+                        <div style="background: rgba(168, 85, 247, 0.1); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid rgba(168, 85, 247, 0.2);">
+                            <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        </div>
+                        <div style="text-align: left;">
+                            <p style="font-weight: 700; font-size: 0.75rem; color: #fff;">10 Münzen</p>
+                            <p style="font-size: 0.6rem; color: var(--text-muted);">Mega Car Booster</p>
+                        </div>
+                    </div>
+                    <button onclick="buyCoins(10, 8.00)" class="btn-active" style="background: linear-gradient(to right, #a855f7, #9333ea); color: #fff; font-weight: 900; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem;">
+                        8,00 €
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ERGEBNIS- / LEVEL-BEENDET-BILDSCHIRM -->
+        <div id="round-complete-screen" class="card w-full hidden" style="padding: 1.5rem;">
+            <div id="result-icon-box" style="width: 4rem; height: 4rem; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+                <!-- Dynamisches Icon -->
+            </div>
+            
+            <h2 id="result-title" style="font-size: 1.75rem; font-weight: 900; margin-bottom: 0.25rem; color: #fff;">Level geschafft!</h2>
+            <p id="result-subtitle" style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 1rem;">Deine Leistung in diesem Level.</p>
+            
+            <!-- Statistiken -->
+            <div class="grid grid-cols-2 gap-3 w-full" style="margin-bottom: 1rem;">
+                <div style="background: #111c30; border: 1px solid #334155; padding: 0.75rem; border-radius: 0.75rem;">
+                    <span style="font-size: 0.6rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">Fragen gelöst</span>
+                    <span id="result-solved" style="font-size: 1.25rem; font-weight: 700; color: #fff;">0 / 20</span>
+                </div>
+                <div style="background: #111c30; border: 1px solid #334155; padding: 0.75rem; border-radius: 0.75rem;">
+                    <span style="font-size: 0.6rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">Gesamtpunkte</span>
+                    <span id="result-points" style="font-size: 1.25rem; font-weight: 700; color: #6366f1;">0</span>
+                </div>
+            </div>
+
+            <!-- Münzen-Gewinn-Banner -->
+            <div id="coin-reward-banner" style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 0.75rem; padding: 0.875rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; width: 100%;" class="hidden">
+                <div class="flex" style="align-items: center; gap: 0.625rem; text-align: left;">
+                    <div style="background: rgba(251, 191, 36, 0.2); padding: 0.35rem; border-radius: 0.5rem;">
+                        <svg class="svg-icon" style="color: var(--amber-accent); fill: var(--amber-accent);" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 700; color: var(--amber-accent); font-size: 0.75rem;">Volle Punktzahl!</h4>
+                        <p style="font-size: 0.6rem; color: var(--text-muted);">20 Fragen rechtzeitig gelöst.</p>
+                    </div>
+                </div>
+                <div class="flex" style="align-items: center; gap: 0.15rem; font-weight: 900; font-size: 1.25rem; color: var(--amber-accent);">
+                    +1 <svg class="svg-icon" style="width: 1.25rem; height: 1.25rem;" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                </div>
+            </div>
+
+            <!-- Kein-Bonus-Banner -->
+            <div id="no-bonus-banner" style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(71, 85, 105, 0.5); border-radius: 0.75rem; padding: 0.875rem; margin-bottom: 1.5rem; font-size: 0.7rem; color: var(--text-muted);" class="hidden">
+                Schaffe alle 20 Fragen vor Ablauf der 60 Sekunden für den <span style="color: var(--amber-accent); font-weight: 700;">+1 Münzen-Bonus</span>!
+            </div>
+
+            <button id="next-round-btn" class="btn-active" style="width: 100%; background: linear-gradient(to right, var(--emerald-accent), #059669); color: #fff; font-weight: 800; padding: 0.9rem 1.25rem; border-radius: 1rem; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);">
+                Nächstes Level starten <svg class="svg-icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div id="game-over-screen" class="card w-full hidden" style="padding: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+                <svg class="svg-icon" style="width: 2.25rem; height: 2.25rem; color: #f87171;" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            
+            <h2 style="font-size: 1.75rem; font-weight: 900; margin-bottom: 0.25rem; color: #fff;">Fehler! Game Over</h2>
+            <p id="game-over-reason" style="color: #fca5a5; font-size: 0.75rem; margin-bottom: 0.5rem;">Ein einziger Fehler wirft dich zurück an den Start.</p>
+            <p style="font-size: 0.65rem; color: #6366f1; font-weight: 700; margin-bottom: 1.25rem;">Ein Spiel entwickelt von Jihad</p>
+            
+            <div class="grid grid-cols-2 gap-3 w-full" style="margin-bottom: 1.5rem;">
+                <div style="background: #111c30; border: 1px solid #334155; padding: 0.75rem; border-radius: 0.75rem;">
+                    <span style="font-size: 0.6rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">Punkte erreicht</span>
+                    <span id="final-score" style="font-size: 1.25rem; font-weight: 700; color: #fff;">0</span>
+                </div>
+                <div style="background: #111c30; border: 1px solid #334155; padding: 0.75rem; border-radius: 0.75rem;">
+                    <span style="font-size: 0.6rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">Level erreicht</span>
+                    <span id="final-solved" style="font-size: 1.25rem; font-weight: 700; color: #fff;">1</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col w-full" style="gap: 0.625rem;">
+                <button id="restart-btn" class="btn-active" style="width: 100%; background: linear-gradient(to right, #6366f1, #4f46e5); color: #fff; font-weight: 800; padding: 0.9rem 1.25rem; border-radius: 1rem; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);">
+                    Erneut versuchen <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                </button>
+                
+                <button onclick="backToCategoriesFromGameOver()" class="btn-active" style="width: 100%; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(71, 85, 105, 0.5); color: #a5b4fc; font-weight: 700; padding: 0.75rem 1rem; border-radius: 1rem; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Thema wechseln
+                </button>
+            </div>
+        </div>
+
+        <!-- SOFORTANGEBOT BEI GAME OVER -->
+        <div id="loss-shop-modal" class="modal hidden">
+            <button onclick="closeLossShop()" class="btn-active" style="position: absolute; top: 2.5rem; right: 1.5rem; background: #1e293b; color: #cbd5e1; padding: 0.5rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; z-index: 110;">
+                <svg class="svg-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+
+            <div style="width: 3.5rem; height: 3.5rem; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                <svg class="svg-icon" style="width: 1.75rem; height: 1.75rem; color: var(--amber-accent);" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; color: #fff;">Münzen auffüllen?</h3>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Verstärke dein Konto direkt für die nächste Runde!</p>
+            
+            <!-- Jihad Spendenspruch -->
+            <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 1rem; font-size: 0.75rem; color: #cbd5e1; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; width: 100%; max-w: 20rem;">
+                <svg class="svg-icon" style="color: var(--rose-accent); width: 0.875rem; height: 0.875rem;" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <p style="font-weight: 700;">"Dieses geld wird für Jihad sein neues Auto gespendet"</p>
+            </div>
+
+            <!-- Schnellkauf Optionen -->
+            <div style="display: flex; flex-direction: column; gap: 0.625rem; width: 100%; max-w: 20rem; margin-bottom: 1.25rem;">
+                <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.625rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="flex" style="align-items: center; gap: 0.5rem;">
+                        <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        <span style="font-weight: 700; font-size: 0.75rem; color: #fff;">1 Münze</span>
+                    </div>
+                    <button onclick="buyCoins(1, 0.99)" class="btn-active" style="background: linear-gradient(to right, var(--amber-accent), #d97706); color: #0f172a; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem;">0,99 €</button>
+                </div>
+                <div style="background: #0f172a; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 0.75rem; padding: 0.625rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
+                    <div style="position: absolute; top: 0; right: 0; background: #4f46e5; color: #fff; font-size: 0.45rem; font-weight: 700; padding: 0.1/1rem 0.4rem; border-radius: 0 0.75rem 0 0.75rem; text-transform: uppercase;">Beliebt</div>
+                    <div class="flex" style="align-items: center; gap: 0.5rem;">
+                        <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        <span style="font-weight: 700; font-size: 0.75rem; color: #fff;">5 Münzen</span>
+                    </div>
+                    <button onclick="buyCoins(5, 4.50)" class="btn-active" style="background: linear-gradient(to right, #6366f1, #4f46e5); color: #fff; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem;">4,50 €</button>
+                </div>
+                <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.625rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="flex" style="align-items: center; gap: 0.5rem;">
+                        <svg class="svg-icon" style="color: var(--amber-accent);" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>
+                        <span style="font-weight: 700; font-size: 0.75rem; color: #fff;">10 Münzen</span>
+                    </div>
+                    <button onclick="buyCoins(10, 8.00)" class="btn-active" style="background: linear-gradient(to right, #a855f7, #9333ea); color: #fff; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem;">8,00 €</button>
+                </div>
+            </div>
+
+            <button onclick="closeLossShop()" style="background: none; border: none; color: var(--text-muted); text-decoration: underline; font-size: 0.75rem;" class="btn-active">
+                Nein danke, weiter zum Ergebnis
+            </button>
+        </div>
+
+        <!-- WIEDERBELEBUNGS-MODAL -->
+        <div id="revive-modal" class="modal hidden">
+            <div style="width: 4rem; height: 4rem; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <svg class="svg-icon" style="width: 2rem; height: 2rem; color: var(--amber-accent);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v8M9 11h6"/></svg>
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff;" id="revive-title">Fehler gemacht!</h3>
+            <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem; max-w: 18rem;" id="revive-subtitle">Belebe dich mit einer Münze wieder und spiele direkt weiter!</p>
+            
+            <div class="flex flex-col gap-3 w-full" style="max-w: 20rem;">
+                <button id="confirm-revive-btn" onclick="reviveWithCoin()" class="btn-active" style="width: 100%; background: linear-gradient(to right, var(--amber-accent), #e0a910); color: #0f172a; font-weight: 800; padding: 0.9rem 1.25rem; border-radius: 1rem; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.3);">
+                    Wiederbeleben (-1 <svg class="svg-icon" style="width: 1.1rem; height: 1.1rem; fill: currentColor;" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>)
+                </button>
+                <button onclick="rejectRevive()" class="btn-active" style="background: #1e293b; color: var(--text-muted); font-weight: 700; padding: 0.75rem; border-radius: 1rem; font-size: 0.875rem;">
+                    Nein, aufgeben
+                </button>
+            </div>
+        </div>
+
+        <!-- SIMULIERTER BEZAHLVORGANG (MODAL) -->
+        <div id="payment-modal" class="modal hidden" style="z-index: 120;">
+            <div id="payment-loading">
+                <div style="width: 3rem; height: 3rem; border: 4px solid var(--amber-accent); border-top-color: transparent; border-radius: 9999px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto;"></div>
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; color: #fff;">Simuliere sichere Zahlung...</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Verbinde mit App Store / Google Play</p>
+            </div>
+            <div id="payment-success" class="hidden flex flex-col items-center" style="max-w: 20rem;">
+                <div style="width: 3.5rem; height: 3.5rem; background: rgba(16, 185, 129, 0.2); border: 2px solid var(--emerald-accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <svg class="svg-icon" style="width: 1.75rem; height: 1.75rem; color: #34d399; stroke-width: 3;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff;">Zahlung erfolgreich!</h3>
+                <p style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 0.75rem;">
+                    Vielen Dank für deine Spende! Jihad freut sich sehr über dein Engagement für sein neues Auto.
+                </p>
+                <p id="purchased-amount-text" style="font-size: 0.7rem; color: #34d399; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 0.25rem 0.75rem; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    +0 Münzen gutgeschrieben!
+                </p>
+                <button onclick="closePaymentModal()" class="btn-active" style="margin-top: 1.25rem; background: #1e293b; color: #fff; font-weight: 700; padding: 0.5rem 1.25rem; border-radius: 0.75rem; font-size: 0.75rem;">
+                    Zurück zum Shop
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full max-w-md" style="text-align: center; padding-top: 1rem; padding-bottom: 1.5rem; font-size: 0.625rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.1rem; z-index: 10;">
+        <span>BrainBlitz Speedrun v3.0 • Smartphone & PC</span>
+        <span style="color: rgba(129, 140, 248, 0.6); font-weight: 700;">Coded by Jihad © Alle Rechte vorbehalten</span>
+    </footer>
+
+    <!-- INTERNE LOGIK & AUDIO-SYNTHESIZER -->
+    <script>
+        // --- STREAMING_CHUNK: Setting up protected storage fallbacks ---
+        // CRITICAL iOS SANDBOX PROTECTION WRAPPER:
+        // Safely intercept security exceptions thrown by iOS Mail Client when reading/writing localStorage
+        const SafeStorage = {
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    return this[key] || null;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    this[key] = value;
+                }
+            }
+        };
+
+        // --- STREAMING_CHUNK: Initializing safely protected AudioContext ---
+        let audioCtx;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn("AudioContext blockiert oder nicht unterstützt in diesem Browser.");
+        }
+        
+        function playSound(type) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); // E5
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'tick') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'level-up') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            } else if (type === 'coin') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); // B5
+                osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08); // E6
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            }
+        }
+
+        // Haptisches Feedback (nur auf Smartphones)
+        function vibrate(duration) {
+            if (navigator.vibrate) {
+                navigator.vibrate(duration);
+            }
+        }
+
+        // --- STREAMING_CHUNK: Defining local fallbacks to guarantee 0ms latency ---
+        async function fetchLevelQuestionsFromGemini(category, level) {
+            // ALWAYS use offline Fallback on mobile/sandboxes to guarantee 0ms lag
+            return generateLocalFallbackQuestions(category, level);
+        }
+
+        // --- OFFLINE-FALLBACKS FÜR ALLE KATEGORIEN ---
+        function generateLocalFallbackQuestions(category, level) {
+            const list = [];
+            for (let i = 0; i < 20; i++) {
+                if (category === "Mathe") {
+                    list.push(generateMathFallbackQuestion(level));
+                } else if (category === "Bio") {
+                    list.push(getBioFallbackQuestion(level, i));
+                } else if (category === "Geschichte") {
+                    list.push(getHistoryFallbackQuestion(level, i));
+                } else if (category === "Rätsel") {
+                    list.push(getRiddleFallbackQuestion(level, i));
+                } else {
+                    list.push(getGKFallbackQuestion(level, i));
+                }
+            }
+            return list;
+        }
+
+        // --- STREAMING_CHUNK: Math questions logic generation ---
+        // Mathe-Generator (Skaliert unendlich über Levels!)
+        function generateMathFallbackQuestion(level) {
+            let num1, num2, q, correct;
+            if (level <= 3) {
+                num1 = Math.floor(Math.random() * 20) + 1;
+                num2 = Math.floor(Math.random() * 20) + 1;
+                q = `Berechne: ${num1} + ${num2}`;
+                correct = num1 + num2;
+            } else if (level <= 10) {
+                num1 = Math.floor(Math.random() * 12) + 2;
+                num2 = Math.floor(Math.random() * 10) + 2;
+                q = `Berechne: ${num1} × ${num2}`;
+                correct = num1 * num2;
+            } else if (level <= 25) {
+                num1 = Math.floor(Math.random() * 50) + 10;
+                num2 = Math.floor(Math.random() * 40) + 5;
+                q = `Berechne: ${num1} - ${num2}`;
+                correct = num1 - num2;
+            } else {
+                num1 = Math.floor(Math.random() * 15) + 5;
+                q = `Berechne das Quadrat von ${num1} (${num1}²)`;
+                correct = num1 * num1;
+            }
+            let w1 = correct + (Math.random() > 0.5 ? 2 : -2);
+            let w2 = correct + (Math.random() > 0.5 ? 5 : -5);
+            if (w1 === w2) w2 += 3;
+            const answers = [correct, w1, w2].sort(() => Math.random() - 0.5);
+            return { q, a: answers.map(String), correct: answers.indexOf(correct) };
+        }
+
+        // --- STREAMING_CHUNK: Subject questions list details ---
+        // Bio-Fallbacks (Hochqualitativ, indexbasierte Diversifikation)
+        function getBioFallbackQuestion(level, index) {
+            const pool = [
+                { q: "Was ist das größte Organ des menschlichen Körpers?", a: ["Die Haut", "Die Leber", "Die Lunge"], correct: 0 },
+                { q: "Welches Gas atmen Pflanzen bei der Photosynthese hauptsächlich ein?", a: ["Sauerstoff", "Stickstoff", "Kohlendioxid"], correct: 2 },
+                { q: "Wie viele Knochen hat ein erwachsener Mensch normalerweise?", a: ["206 Knochen", "312 Knochen", "154 Knochen"], correct: 0 },
+                { q: "Wo im menschlichen Körper befindet sich das Herz?", a: ["Brustkorb links", "Brustkorb Mitte-Links", "Bauchraum oben"], correct: 1 },
+                { q: "Welche Blutgruppe gilt weltweit als Universalspender?", a: ["Blutgruppe 0-", "Blutgruppe AB+", "Blutgruppe A-"], correct: 0 },
+                { q: "Was transportiert der rote Blutfarbstoff (Hämoglobin)?", a: ["Kohlenhydrate", "Sauerstoff", "Harnstoff"], correct: 1 },
+                { q: "Welches ist das größte Gelenk im menschlichen Körper?", a: ["Das Hüftgelenk", "Das Kniegelenk", "Das Schultergelenk"], correct: 1 },
+                { q: "Wie nennt man die kleinste lebende Einheit eines Organismus?", a: ["Molekül", "Zelle", "Atom"], correct: 1 },
+                { q: "Was ist der Hauptbestandteil von Haaren und Fingernägeln?", a: ["Kollagen", "Keratin", "Melanin"], correct: 1 },
+                { q: "Wie viele Gehirnhälften hat ein Mensch?", a: ["Zwei", "Drei", "Vier"], correct: 0 }
+            ];
+            return pool[(index + level) % pool.length];
+        }
+
+        // Geschichts-Fallbacks
+        function getHistoryFallbackQuestion(level, index) {
+            const pool = [
+                { q: "In welchem Jahr begann die Französische Revolution?", a: ["1789", "1799", "1804"], correct: 0 },
+                { q: "Wer entdeckte im Jahr 1492 Amerika?", a: ["Christoph Kolumbus", "Vasco da Gama", "Marco Polo"], correct: 0 },
+                { q: "In welchem Jahr fiel die Berliner Mauer?", a: ["1985", "1989", "1991"], correct: 1 },
+                { q: "Wer war der allererste Bundeskanzler der Bundesrepublik Deutschland?", a: ["Willy Brandt", "Ludwig Erhard", "Konrad Adenauer"], correct: 2 },
+                { q: "Wer herrschte als legendärer Feldherr über das alte Römische Reich?", a: ["Julius Cäsar", "Alexander der Große", "Kaiser Nero"], correct: 0 },
+                { q: "Welches antike Volk baute die berühmten Pyramiden von Gizeh?", a: ["Die Römer", "Die Ägypter", "Die Griechen"], correct: 1 },
+                { q: "Wann endete der Erste Weltkrieg?", a: ["1914", "1918", "1939"], correct: 1 },
+                { q: "Wer gilt als Erfinder des modernen Buchdrucks?", a: ["Johannes Gutenberg", "Galileo Galilei", "Leonardo da Vinci"], correct: 0 },
+                { q: "In welchem Land lag die antike Stadt Troja?", a: ["Griechenland", "Türkei", "Italien"], correct: 1 },
+                { q: "Wer war die legendäre Königin von Ägypten, die sich mit Cäsar verbündete?", a: ["Kleopatra", "Nefertiti", "Hatschepsut"], correct: 0 }
+            ];
+            return pool[(index + level) % pool.length];
+        }
+
+        // Rätsel-Fallbacks
+        function getRiddleFallbackQuestion(level, index) {
+            const pool = [
+                { q: "Was hat Zähne, kann aber niemals zubeißen oder kauen?", a: ["Ein Kamm", "Ein Reißverschluss", "Eine Säge"], correct: 0 },
+                { q: "Welches Wort wird im Wörterbuch immer komplett falsch geschrieben?", a: ["Falsch", "Fehlerhaft", "Unmöglich"], correct: 0 },
+                { q: "Was wird beim Trocknen immer nasser?", a: ["Die Wäscheleine", "Das Handtuch", "Der Schwamm"], correct: 1 },
+                { q: "Je mehr man wegnimmt, desto größer wird es. Was ist es?", a: ["Ein Haufen Sand", "Ein Loch im Boden", "Ein Schuldenberg"], correct: 1 },
+                { q: "Ich habe Städte, aber keine Häuser. Ich habe Wälder, aber keine Bäume. Was bin ich?", a: ["Ein Globus", "Eine Landkarte", "Ein Bilderbuch"], correct: 1 },
+                { q: "Was gehört dir, wird aber von deinen Freunden viel öfter benutzt als von dir?", a: ["Dein Name", "Dein Smartphone", "Dein Fahrrad"], correct: 0 },
+                { q: "Wenn ein rotes Haus rechts steht und ein blaues links, wo steht das Weiße Haus?", a: ["In Washington D.C.", "In der Mitte", "Es existiert nicht"], correct: 0 },
+                { q: "Wie viele Monate haben genau 28 Tage?", a: ["Nur einer (Februar)", "Alle 12 Monate", "Keiner"], correct: 1 },
+                { q: "Was läuft, ohne Beine zu haben, und kann niemals rückwärts gehen?", a: ["Die Zeit / Uhr", "Der Fluss", "Der Wind"], correct: 0 },
+                { q: "Was kann man zwar mit der linken Hand halten, aber niemals mit der rechten?", a: ["Deinen eigenen Ellbogen", "Deine rechte Hand", "Deinen rechten Daumen"], correct: 1 }
+            ];
+            return pool[(index + level) % pool.length];
+        }
+
+        // Allgemeinwissen-Fallbacks
+        function getGKFallbackQuestion(level, index) {
+            const pool = [
+                { q: "Was ist die offizielle Hauptstadt von Australien?", a: ["Sydney", "Melbourne", "Canberra"], correct: 2 },
+                { q: "Welches physikalische Metall ist bei normaler Raumtemperatur flüssig?", a: ["Quecksilber", "Blei", "Flüssig-Zink"], correct: 0 },
+                { q: "Aus wie vielen Farben setzt sich das Licht eines normalen Regenbogens zusammen?", a: ["6 Farben", "7 Farben", "8 Farben"], correct: 1 },
+                { q: "Welcher Fluss gilt als der wasserreichste und längste Fluss der Erde?", a: ["Der Nil", "Der Amazonas", "Der Mississippi"], correct: 1 },
+                { q: "In welchem Ozean liegt die Inselgruppe von Hawaii?", a: ["Pazifischer Ozean", "Atlantischer Ozean", "Indischer Ozean"], correct: 0 },
+                { q: "Wie viele Bundesländer hat die Bundesrepublik Deutschland?", a: ["14", "16", "18"], correct: 1 },
+                { q: "Welche Währung wird im asiatischen Land Japan verwendet?", a: ["Yuan", "Yen", "Won"], correct: 1 },
+                { q: "Welches ist das flächenmäßig kleinste Land der Erde?", a: ["Monaco", "Liechtenstein", "Vatikanstadt"], correct: 2 },
+                { q: "Wie lautet das chemische Element-Symbol für reinstes Gold?", a: ["Au", "Ag", "Fe"], correct: 0 },
+                { q: "Wie viele Kontinente gibt es auf unserer Erde?", a: ["5 Kontinente", "6 Kontinente", "7 Kontinente"], correct: 2 }
+            ];
+            return pool[(index + level) % pool.length];
+        }
+
+        // --- STREAMING_CHUNK: Setting up protected storage properties ---
+        // Load settings safely using the protected iOS Mail-sandbox storage module
+        let currentQuestionsList = [];
+        let currentQuestion = null;
+        let score = 0;
+        let currentLevel = 1;
+        
+        let questionsAnsweredInLevel = 0; 
+        let correctAnswersInLevel = 0;
+        let selectedCategory = "Allgemeinwissen";
+
+        let levelTimer = null;
+        let timeLeft = 60.0; 
+        let isAnsweringBlocked = false;
+        let isPaused = false;
+
+        let coins = parseInt(SafeStorage.getItem('brainblitz_coins')) || 0;
+        let highscore = parseInt(SafeStorage.getItem('brainblitz_highscore')) || 0;
+        let lifetimePoints = parseInt(SafeStorage.getItem('brainblitz_lifetime_points')) || 0;
+
+        // --- DOM ELEMENTS ---
+        const categoryScreen = document.getElementById('category-screen');
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const shopScreen = document.getElementById('shop-screen');
+        const roundCompleteScreen = document.getElementById('round-complete-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const confettiContainer = document.getElementById('confetti-container');
+        
+        const startBtn = document.getElementById('start-btn');
+        const shopOpenBtn = document.getElementById('shop-open-btn');
+        const shopCloseBtn = document.getElementById('shop-close-btn');
+        const nextRoundBtn = document.getElementById('next-round-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        const scoreDisplay = document.getElementById('score-display');
+        const coinsDisplay = document.getElementById('coins-display');
+        const highscoreDisplay = document.getElementById('highscore-display');
+        const globalCoinsDisplay = document.getElementById('global-coins-display');
+        const levelIndicator = document.getElementById('level-indicator');
+        const selectedCategoryTag = document.getElementById('selected-category-tag');
+        
+        const timerProgress = document.getElementById('timer-progress');
+        const timerText = document.getElementById('timer-text');
+        
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const currentLevelTag = document.getElementById('current-level-tag');
+        
+        // Ergebnis Bildschirme
+        const resultIconBox = document.getElementById('result-icon-box');
+        const resultTitle = document.getElementById('result-title');
+        const resultSubtitle = document.getElementById('result-subtitle');
+        const resultSolved = document.getElementById('result-solved');
+        const resultPoints = document.getElementById('result-points');
+        const coinRewardBanner = document.getElementById('coin-reward-banner');
+        const noBonusBanner = document.getElementById('no-bonus-banner');
+        
+        const finalScore = document.getElementById('final-score');
+        const finalSolved = document.getElementById('final-solved');
+        const gameOverReason = document.getElementById('game-over-reason');
+
+        // Shop Elements
+        const shopLifetimePoints = document.getElementById('shop-lifetime-points');
+        const exchangeBtn = document.getElementById('exchange-btn');
+        const paymentModal = document.getElementById('payment-modal');
+        const paymentLoading = document.getElementById('payment-loading');
+        const paymentSuccess = document.getElementById('payment-success');
+        const purchasedAmountText = document.getElementById('purchased-amount-text');
+
+        // Initialisierung
+        updateGlobalCounters();
+
+        // --- STREAMING_CHUNK: Setup active navigation event listeners ---
+        startBtn.addEventListener('click', () => startNewLevel(1));
+        nextRoundBtn.addEventListener('click', () => {
+            if (currentLevel >= 100) {
+                roundCompleteScreen.classList.add('hidden');
+                categoryScreen.classList.remove('hidden');
+                currentLevel = 1;
+                updateGlobalCounters();
+            } else {
+                startNewLevel(currentLevel + 1);
+            }
+        });
+        restartBtn.addEventListener('click', () => startNewLevel(1));
+
+        shopOpenBtn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            shopScreen.classList.remove('hidden');
+            updateShopUI();
+        });
+
+        shopCloseBtn.addEventListener('click', () => {
+            shopScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            updateGlobalCounters();
+        });
+
+        // Tastatursteuerung für PC
+        document.addEventListener('keydown', (e) => {
+            if (gameScreen.classList.contains('hidden') || isAnsweringBlocked || isPaused) return;
+            if (e.key === '1' || e.key.toLowerCase() === 'a') selectAnswer(0);
+            if (e.key === '2' || e.key.toLowerCase() === 'b') selectAnswer(1);
+            if (e.key === '3' || e.key.toLowerCase() === 'c') selectAnswer(2);
+            if (e.key.toLowerCase() === 'p' || e.key === 'Escape') togglePause();
+        });
+
+        function selectCategory(category) {
+            selectedCategory = category;
+            selectedCategoryTag.textContent = category;
+            categoryScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        }
+
+        function backToCategories() {
+            startScreen.classList.add('hidden');
+            categoryScreen.classList.remove('hidden');
+        }
+
+        function backToCategoriesFromGameOver() {
+            gameOverScreen.classList.add('hidden');
+            categoryScreen.classList.remove('hidden');
+            updateGlobalCounters();
+        }
+
+        function updateGlobalCounters() {
+            scoreDisplay.textContent = lifetimePoints; 
+            coinsDisplay.textContent = coins;
+            globalCoinsDisplay.textContent = coins;
+            highscoreDisplay.textContent = highscore;
+            levelIndicator.textContent = currentLevel;
+        }
+
+        function updateShopUI() {
+            shopLifetimePoints.textContent = lifetimePoints.toLocaleString();
+            if (lifetimePoints >= 10000) {
+                exchangeBtn.removeAttribute('disabled');
+                exchangeBtn.style.opacity = '1';
+                exchangeBtn.style.cursor = 'pointer';
+            } else {
+                exchangeBtn.setAttribute('disabled', 'true');
+                exchangeBtn.style.opacity = '0.4';
+                exchangeBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        // --- STREAMING_CHUNK: Starting active game levels and populating pool ---
+        async function startNewLevel(level) {
+            currentLevel = level;
+            questionsAnsweredInLevel = 0;
+            correctAnswersInLevel = 0;
+            isAnsweringBlocked = false;
+            isPaused = false;
+            
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('pause-btn').innerHTML = '<svg class="svg-icon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+
+            if (currentLevel === 1) {
+                score = 0;
+            }
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            roundCompleteScreen.classList.add('hidden');
+            confettiContainer.classList.add('hidden');
+            confettiContainer.innerHTML = '';
+            
+            // Sofort offline laden (0ms Delay)
+            currentQuestionsList = await fetchLevelQuestionsFromGemini(selectedCategory, currentLevel);
+
+            gameScreen.classList.remove('hidden');
+            updateGlobalCounters();
+            nextQuestion();
+            startLevelTimer();
+        }
+
+        // --- STREAMING_CHUNK: Implementing active game timers and pause flow ---
+        function togglePause() {
+            if (gameScreen.classList.contains('hidden') || isAnsweringBlocked) return;
+
+            isPaused = !isPaused;
+            const pauseModal = document.getElementById('pause-modal');
+            const pauseBtn = document.getElementById('pause-btn');
+
+            if (isPaused) {
+                clearInterval(levelTimer);
+                pauseModal.classList.remove('hidden');
+                pauseBtn.innerHTML = '<svg class="svg-icon" viewBox="0 0 24 24" style="fill: currentColor;"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+            } else {
+                pauseModal.classList.add('hidden');
+                pauseBtn.innerHTML = '<svg class="svg-icon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+                resumeTimer();
+            }
+        }
+
+        function nextQuestion() {
+            isAnsweringBlocked = false;
+            questionsAnsweredInLevel++;
+            questionNumber.textContent = questionsAnsweredInLevel;
+            currentLevelTag.textContent = `Level ${currentLevel}`;
+
+            currentQuestion = currentQuestionsList[questionsAnsweredInLevel - 1] || generateMathFallbackQuestion(currentLevel);
+
+            questionText.textContent = currentQuestion.q;
+            
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, idx) => {
+                btn.className = "answer-btn btn-active";
+                btn.style.background = "rgba(30, 41, 59, 0.4)";
+                btn.style.borderColor = "rgba(71, 85, 105, 0.4)";
+                btn.style.color = "var(--text-light)";
+                
+                const textSpan = btn.querySelector('span:first-child');
+                textSpan.textContent = currentQuestion.a[idx];
+
+                const indicator = btn.querySelector('.answer-btn-indicator');
+                indicator.style.background = "rgba(71, 85, 105, 0.5)";
+                indicator.style.color = "var(--text-muted)";
+                indicator.innerHTML = String.fromCharCode(65 + idx);
+            });
+        }
+
+        function startLevelTimer() {
+            timeLeft = 60.0;
+            updateTimerUI();
+            resumeTimer();
+        }
+
+        function resumeTimer() {
+            clearInterval(levelTimer);
+            levelTimer = setInterval(() => {
+                if (isPaused) return;
+                timeLeft -= 0.1;
+                if (timeLeft < 0) timeLeft = 0;
+                
+                updateTimerUI();
+
+                if (timeLeft <= 5.0 && timeLeft > 0 && Math.abs((timeLeft * 10) % 10) < 0.1) {
+                    playSound('tick');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(levelTimer);
+                    endLevel();
+                }
+            }, 100);
+        }
+
+        function updateTimerUI() {
+            timerText.textContent = `${timeLeft.toFixed(1)}s`;
+            const percent = (timeLeft / 60) * 100;
+            timerProgress.style.width = `${percent}%`;
+
+            if (timeLeft <= 10.0) {
+                timerProgress.style.background = "linear-gradient(to right, var(--rose-accent), #f43f5e)";
+                timerText.classList.add('timer-warning');
+            } else if (timeLeft <= 25.0) {
+                timerProgress.style.background = "linear-gradient(to right, #f59e0b, #d97706)";
+                timerText.classList.remove('timer-warning');
+                timerText.style.color = "var(--amber-accent)";
+            } else {
+                timerProgress.style.background = "linear-gradient(to right, var(--emerald-accent), var(--indigo-accent))";
+                timerText.classList.remove('timer-warning');
+                timerText.style.color = "#818cf8";
+            }
+        }
+
+        // --- STREAMING_CHUNK: Evaluating selected answers and registering points ---
+        function selectAnswer(index) {
+            if (isAnsweringBlocked || isPaused) return;
+            isAnsweringBlocked = true;
+
+            const buttons = document.querySelectorAll('.answer-btn');
+            const correctIndex = currentQuestion.correct;
+
+            if (index === correctIndex) {
+                playSound('correct');
+                vibrate([30]);
+                correctAnswersInLevel++;
+
+                buttons[index].style.background = "rgba(16, 185, 129, 0.2)";
+                buttons[index].style.borderColor = "var(--emerald-accent)";
+                buttons[index].style.color = "#34d399";
+                
+                const indicator = buttons[index].querySelector('.answer-btn-indicator');
+                indicator.style.background = "var(--emerald-accent)";
+                indicator.style.color = "#fff";
+                indicator.innerHTML = "✓";
+
+                const pointsEarned = Math.max(10, Math.floor(timeLeft * 10));
+                score += pointsEarned;
+                lifetimePoints += pointsEarned; 
+                SafeStorage.setItem('brainblitz_lifetime_points', lifetimePoints);
+                updateGlobalCounters();
+
+                setTimeout(() => {
+                    if (questionsAnsweredInLevel >= 20) {
+                        clearInterval(levelTimer);
+                        endLevel();
+                    } else {
+                        nextQuestion();
+                    }
+                }, 350);
+            } else {
+                clearInterval(levelTimer);
+                vibrate(400);
+                playSound('wrong');
+
+                buttons[index].style.background = "rgba(239, 68, 68, 0.2)";
+                buttons[index].style.borderColor = "var(--rose-accent)";
+                buttons[index].style.color = "#fca5a5";
+                
+                const indicator = buttons[index].querySelector('.answer-btn-indicator');
+                indicator.style.background = "var(--rose-accent)";
+                indicator.style.color = "#fff";
+                indicator.innerHTML = "✗";
+
+                buttons[correctIndex].style.background = "rgba(16, 185, 129, 0.1)";
+                buttons[correctIndex].style.borderColor = "rgba(16, 185, 129, 0.5)";
+                buttons[correctIndex].style.color = "#34d399";
+
+                setTimeout(() => {
+                    triggerLossFlow("Falsche Antwort! Sudden Death.");
+                }, 1400);
+            }
+        }
+
+        // --- STREAMING_CHUNK: Handling game over and reviving player processes ---
+        function triggerLossFlow(reason) {
+            clearInterval(levelTimer);
+            const reviveModal = document.getElementById('revive-modal');
+            const confirmReviveBtn = document.getElementById('confirm-revive-btn');
+            
+            document.getElementById('revive-title').textContent = "Fehler gemacht!";
+            document.getElementById('revive-subtitle').innerHTML = `Du bist bei Frage <b>${questionsAnsweredInLevel}</b> in Level <b>${currentLevel}</b>. Belebe dich für <b>1 Münze</b> wieder, um deinen Speedrun fortzusetzen!`;
+
+            if (coins >= 1) {
+                confirmReviveBtn.removeAttribute('disabled');
+                confirmReviveBtn.style.opacity = '1';
+                confirmReviveBtn.style.cursor = 'pointer';
+                confirmReviveBtn.style.background = "linear-gradient(to right, var(--amber-accent), #e0a910)";
+            } else {
+                confirmReviveBtn.setAttribute('disabled', 'true');
+                confirmReviveBtn.style.opacity = '0.5';
+                confirmReviveBtn.style.cursor = 'not-allowed';
+                confirmReviveBtn.style.background = "#1e293b";
+            }
+            
+            reviveModal.classList.remove('hidden');
+        }
+
+        function reviveWithCoin() {
+            if (coins < 1) return;
+            coins -= 1;
+            SafeStorage.setItem('brainblitz_coins', coins);
+            updateGlobalCounters();
+            
+            document.getElementById('revive-modal').classList.add('hidden');
+            playSound('coin');
+            vibrate([100]);
+
+            questionsAnsweredInLevel--;
+            nextQuestion();
+            resumeTimer();
+        }
+
+        function rejectRevive() {
+            document.getElementById('revive-modal').classList.add('hidden');
+            endGame("Sudden Death Fehler!");
+        }
+
+        // --- LEVEL BEENDET ---
+        function endLevel() {
+            gameScreen.classList.add('hidden');
+            roundCompleteScreen.classList.remove('hidden');
+
+            resultSolved.textContent = `${correctAnswersInLevel} / 20`;
+            resultPoints.textContent = score;
+
+            if (currentLevel >= 100) {
+                coins += 1; 
+                SafeStorage.setItem('brainblitz_coins', coins);
+                updateGlobalCounters();
+
+                resultIconBox.style.background = "linear-gradient(to right, var(--amber-accent), #d97706)";
+                resultIconBox.innerHTML = '<svg class="svg-icon" style="width: 2rem; height: 2rem; color: #fff;" viewBox="0 0 24 24"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/></svg>';
+                
+                resultTitle.textContent = "GRANDMASTER!";
+                resultSubtitle.textContent = "Sensationell! Du hast alle 100 Levels von BrainBlitz gemeistert!";
+
+                coinRewardBanner.classList.remove('hidden');
+                coinRewardBanner.querySelector('h4').textContent = "Großmeister-Bonus!";
+                coinRewardBanner.querySelector('p').textContent = "Alle 100 Levels erfolgreich überstanden!";
+                coinRewardBanner.querySelector('div:last-child').innerHTML = '+1 <svg class="svg-icon" style="width: 1.25rem; height: 1.25rem;" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><circle cx="18" cy="18" r="4"/><path d="M12 10a6 6 0 0 0-6 6"/></svg>';
+                noBonusBanner.classList.add('hidden');
+
+                nextRoundBtn.innerHTML = 'Hauptmenü <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+                triggerConfetti();
+                setTimeout(() => playSound('level-up'), 100);
+                return;
+            }
+
+            if (correctAnswersInLevel === 20) {
+                coins += 1; 
+                SafeStorage.setItem('brainblitz_coins', coins);
+                updateGlobalCounters();
+
+                coinRewardBanner.classList.remove('hidden');
+                noBonusBanner.classList.add('hidden');
+                
+                resultIconBox.style.background = "rgba(251, 191, 36, 0.2)";
+                resultIconBox.style.border = "1px solid rgba(251, 191, 36, 0.3)";
+                resultIconBox.innerHTML = '<svg class="svg-icon" style="width: 2rem; height: 2rem; color: var(--amber-accent);" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34M12 2a5 5 0 0 0-5 5v5c0 1.1.9 2 2 2h6a2 2 0 0 0 2-2V7a5 5 0 0 0-5-5z"/></svg>';
+                
+                resultTitle.textContent = "Perfektes Level!";
+                resultSubtitle.textContent = "Unglaublich! Du hast alle 20 Fragen in Rekordzeit zerlegt!";
+
+                triggerConfetti();
+                setTimeout(() => playSound('coin'), 300);
+            } else {
+                coinRewardBanner.classList.add('hidden');
+                noBonusBanner.classList.remove('hidden');
+
+                resultIconBox.style.background = "rgba(99, 102, 241, 0.2)";
+                resultIconBox.style.border = "1px solid rgba(99, 102, 241, 0.3)";
+                resultIconBox.innerHTML = '<svg class="svg-icon" style="width: 2rem; height: 2rem; color: #6366f1;" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+                
+                resultTitle.textContent = "Level überstanden!";
+                resultSubtitle.textContent = "Mach dich bereit für das nächste Level.";
+                playSound('level-up');
+            }
+
+            if (score > highscore) {
+                highscore = score;
+                SafeStorage.setItem('brainblitz_highscore', highscore);
+                updateGlobalCounters();
+            }
+
+            nextRoundBtn.innerHTML = 'Nächstes Level starten <svg class="svg-icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+        }
+
+        // --- GAME OVER ---
+        function endGame(reason) {
+            clearInterval(levelTimer);
+            playSound('wrong');
+
+            gameScreen.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+
+            gameOverReason.textContent = reason;
+            finalScore.textContent = score;
+            finalSolved.textContent = `Level ${currentLevel}`;
+
+            if (score > highscore) {
+                highscore = score;
+                SafeStorage.setItem('brainblitz_highscore', highscore);
+                updateGlobalCounters();
+            }
+
+            document.getElementById('loss-shop-modal').classList.remove('hidden');
+        }
+
+        function closeLossShop() {
+            document.getElementById('loss-shop-modal').classList.add('hidden');
+        }
+
+        // --- STREAMING_CHUNK: Processing point exchange and virtual payment logic ---
+        function exchangePointsForCoins() {
+            if (lifetimePoints >= 10000) {
+                lifetimePoints -= 10000;
+                coins += 5;
+                SafeStorage.setItem('brainblitz_lifetime_points', lifetimePoints);
+                SafeStorage.setItem('brainblitz_coins', coins);
+                
+                playSound('coin');
+                updateShopUI();
+                updateGlobalCounters();
+                
+                const btn = document.getElementById('exchange-btn');
+                const origText = btn.textContent;
+                btn.textContent = "Getauscht!";
+                btn.style.background = "var(--emerald-accent)";
+                setTimeout(() => {
+                    btn.textContent = origText;
+                    btn.style.background = "#4f46e5";
+                    updateShopUI();
+                }, 1500);
+            }
+        }
+
+        function buyCoins(amount, price) {
+            paymentModal.classList.remove('hidden');
+            paymentLoading.classList.remove('hidden');
+            paymentSuccess.classList.add('hidden');
+
+            setTimeout(() => {
+                paymentLoading.classList.add('hidden');
+                paymentSuccess.classList.remove('hidden');
+                
+                coins += amount;
+                SafeStorage.setItem('brainblitz_coins', coins);
+                purchasedAmountText.textContent = `+${amount} Münzen erfolgreich gutgeschrieben!`;
+                
+                playSound('coin');
+                triggerConfetti();
+                updateShopUI();
+                updateGlobalCounters();
+            }, 2000);
+        }
+
+        function closePaymentModal() {
+            paymentModal.classList.add('hidden');
+            document.getElementById('loss-shop-modal').classList.add('hidden');
+        }
+
+        // --- VISUELLE EFFEKTE ---
+        function triggerConfetti() {
+            confettiContainer.classList.remove('hidden');
+            confettiContainer.innerHTML = '';
+            
+            const colors = ['#fbbf24', '#f59e0b', '#34d399', '#60a5fa', '#a78bfa', '#ec4899'];
+            
+            for (let i = 0; i < 35; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'confetti';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.animationDelay = Math.random() * 1.5 + 's';
+                particle.style.transform = `scale(${Math.random() * 0.7 + 0.4})`;
+                confettiContainer.appendChild(particle);
+            }
+        }
+    </script>
+</body>
+</html>
